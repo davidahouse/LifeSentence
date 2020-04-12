@@ -170,6 +170,7 @@
 				TargetAttributes = {
 					94AB13ED1B10C4B800601679 = {
 						CreatedOnToolsVersion = 6.3.2;
+						DevelopmentTeam = 75VB98RCZH;
 					};
 					94AB14021B10C4B800601679 = {
 						CreatedOnToolsVersion = 6.3.2;
@@ -182,6 +183,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -352,9 +354,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 75VB98RCZH;
 				INFOPLIST_FILE = LifeSentence/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -362,9 +366,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 75VB98RCZH;
 				INFOPLIST_FILE = LifeSentence/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -421,6 +427,7 @@
 				94AB140F1B10C4B800601679 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		94AB14101B10C4B800601679 /* Build configuration list for PBXNativeTarget "LifeSentenceTests" */ = {
 			isa = XCConfigurationList;
@@ -429,6 +436,7 @@
 				94AB14121B10C4B800601679 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class LifeOperation: NSOperation {
+class LifeOperation: Operation {
 
     var existingSet:Set<GOLPoint>
     var checkPoint:GOLPoint
@@ -28,12 +28,12 @@ class LifeOperation: NSOperation {
     
     override func main() {
 
-        if self.cancelled {
+        if self.isCancelled {
             return
         }
 
         let rule = GOLRule(existing: existingSet, width:width, height: height)
-        rule.processPoint(checkPoint)
+        rule.processPoint(checkPoint: checkPoint)
         self.alive = rule.alive
         self.deadNeighbors = rule.deadNeighbors
     }

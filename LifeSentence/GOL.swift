@@ -34,7 +34,7 @@ class GOLPoint : Hashable, Equatable {
         return "\(x),\(y)".hashValue
     }
 
-    func neighbor(direction:GOLPointNeighborDirection) -> GOLPoint {
+    func neighbor(_ direction: GOLPointNeighborDirection) -> GOLPoint {
         switch direction {
         case .TopLeft:
             return GOLPoint(x:x-1,y:y-1)
@@ -71,41 +71,40 @@ class GOL {
     var byteCount:Int
     var colorSpace:CGColorSpace
     var bitmapInfo:CGBitmapInfo
-    var processingQueue:NSOperationQueue
-    var operations:Set<LifeOperation>
+    var processingQueue: OperationQueue
+    var operations: Set<LifeOperation>
     
     init(width:Int,height:Int) {
         self.width = width
         self.height = height
         self.bytesPerRow = width * 4
         self.byteCount = bytesPerRow * height
-        self.bitmapData = UnsafeMutablePointer<UInt32>(malloc(Int(byteCount)))
+        self.bitmapData = UnsafeMutablePointer<UInt32>.allocate(capacity: byteCount)
         self.colorSpace = CGColorSpaceCreateDeviceRGB()
-        self.bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.PremultipliedFirst.rawValue)
-
-        self.blackBitmapData = UnsafeMutablePointer<UInt32>(malloc(Int(byteCount)))
+        self.bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)
+        self.blackBitmapData = UnsafeMutablePointer<UInt32>.allocate(capacity: byteCount)
         for i in 0...((width*height)-1) {
             // BGRA
             self.blackBitmapData[i] = 0x000000FF
         }
         
-        self.processingQueue = NSOperationQueue()
+        self.processingQueue = OperationQueue()
         self.operations = Set<LifeOperation>()
     }
     
     func randomInitialState() {
         
-        alive.removeAll(keepCapacity: true)
+        alive.removeAll(keepingCapacity: true)
         
         print("randomInitialState...\(width*height) possible points\n")
-        let startTime:NSDate = NSDate()
+        let startTime: Date = Date()
         for i in 0...((width*height)-1) {
             if arc4random_uniform(100) > 80 {
-                var point:GOLPoint = GOLPoint(x: (i % width), y: (i / width))
+                let point:GOLPoint = GOLPoint(x: (i % width), y: (i / width))
                 alive.insert(point)
             }
         }
-        let setupTime:NSTimeInterval = NSDate().timeIntervalSinceDate(startTime)
+        let setupTime: TimeInterval = Date().timeIntervalSince(startTime)
         print("randomInitialState done... \(setupTime)s \(alive.count) points\n")
     }
     
@@ -114,7 +113,7 @@ class GOL {
         // just a simple pattern to test the basic logic
         if start == 1 {
             
-            alive.removeAll(keepCapacity: true)
+            alive.removeAll(keepingCapacity: true)
             alive.insert(GOLPoint(x: 2, y: 1))
             alive.insert(GOLPoint(x: 2, y: 2))
             alive.insert(GOLPoint(x: 2, y: 3))
@@ -123,7 +122,7 @@ class GOL {
     
     func tick() {
         
-        let startTime:NSDate = NSDate()
+        let startTime = Date()
         print("sim start... \(alive.count) points\n")
 
         // Perform the simulation. Note there is also a parallelSimulation that uses NSOperations to perform the work.
@@ -131,7 +130,7 @@ class GOL {
         // improved.
         linearSimulation()
         
-        let simTime:NSTimeInterval = NSDate().timeIntervalSinceDate(startTime)
+        let simTime: TimeInterval = Date().timeIntervalSince(startTime)
         print("sim end... simTime:\(simTime)s \(alive.count) points\n")
         
     }
@@ -148,9 +147,12 @@ class GOL {
             bitmapData[index] = 0x00FF00FF
         }
         
-        let context = CGBitmapContextCreate(bitmapData, width, height, Int(8), Int(bytesPerRow), colorSpace, bitmapInfo)
-        let imageRef = CGBitmapContextCreateImage(context)
-        return UIImage(CGImage:imageRef)
+        let context = CGContext(data: bitmapData, width: width, height: height, bitsPerComponent: Int(8), bytesPerRow: Int(bytesPerRow), space: colorSpace, bitmapInfo: bitmapInfo.rawValue)
+        if let imageRef = context?.makeImage() {
+            return UIImage(cgImage: imageRef)
+        } else {
+            return nil
+        }
     }
     
     private func linearSimulation() {
@@ -159,7 +161,7 @@ class GOL {
         
         let rule = GOLRule(existing: alive, width: width, height: height)
         for point:GOLPoint in alive {
-            rule.processPoint(point)
+            rule.processPoint(checkPoint: point)
             if rule.alive {
                 newAlive.insert(point)
             }
@@ -170,7 +172,7 @@ class GOL {
         }
         
         for point:GOLPoint in deadToProcess {
-            rule.processPoint(point)
+            rule.processPoint(checkPoint: point)
             if rule.alive {
                 newAlive.insert(point)
             }
@@ -181,20 +183,20 @@ class GOL {
     private func parallelSimulation() {
         var newAlive = Set<GOLPoint>()
         
-        let processingGroup = dispatch_group_create()
-        operations.removeAll(keepCapacity: true)
+        let processingGroup = DispatchGroup()
+        operations.removeAll(keepingCapacity: true)
         for point:GOLPoint in alive {
             
-            dispatch_group_enter(processingGroup)
+            processingGroup.enter()
             let operation:LifeOperation = LifeOperation(existingSet:alive,checkPoint:point,width:width,height:height)
             self.operations.insert(operation)
             operation.completionBlock = {
-                dispatch_group_leave(processingGroup)
+                processingGroup.leave()
             }
             self.processingQueue.addOperation(operation)
         }
-        
-        dispatch_group_wait(processingGroup, DISPATCH_TIME_FOREVER)
+
+        processingGroup.wait(timeout: .distantFuture)
         
         var deadCheckPoints = Set<GOLPoint>()
         for operation:LifeOperation in self.operations {
@@ -206,20 +208,20 @@ class GOL {
                 deadCheckPoints.insert(point)
             }
         }
-        operations.removeAll(keepCapacity: false)
+        operations.removeAll(keepingCapacity: false)
         
         for point:GOLPoint in deadCheckPoints {
             
-            dispatch_group_enter(processingGroup)
+            processingGroup.enter()
             let operation:LifeOperation = LifeOperation(existingSet:alive,checkPoint:point,width:width,height:height)
             self.operations.insert(operation)
             operation.completionBlock = {
-                dispatch_group_leave(processingGroup)
+                processingGroup.leave()
             }
             self.processingQueue.addOperation(operation)
         }
-        
-        dispatch_group_wait(processingGroup, DISPATCH_TIME_FOREVER)
+
+        processingGroup.wait(timeout: .distantFuture)
 
         for operation:LifeOperation in self.operations {
             if operation.alive {

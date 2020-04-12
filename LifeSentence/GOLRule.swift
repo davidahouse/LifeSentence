@@ -26,11 +26,11 @@ class GOLRule {
     }
     
     func processPoint(checkPoint:GOLPoint) {
-        
-        self.deadNeighbors.removeAll(keepCapacity: false)
+
+        deadNeighbors.removeAll(keepingCapacity: false)
 
         // count the alive neighbors
-        var aliveCount = aliveNeighborsForPoint(checkPoint)
+        var aliveCount = aliveNeighborsForPoint(point: checkPoint)
         
         // Are we alive or dead? The rules are different for each
         if existing.contains(checkPoint) {
@@ -45,7 +45,7 @@ class GOLRule {
             // Now check our neighbors to see if any are dead but might
             // come alive...
             for direction:GOLPointNeighborDirection in GOLPointNeighborDirection.allDirections {
-                if let deadPoint:GOLPoint = deadValidNeighbor(checkPoint.neighbor(direction)) {
+                if let deadPoint:GOLPoint = deadValidNeighbor(point: checkPoint.neighbor(direction)) {
                     deadNeighbors.insert(deadPoint)
                 }
             }
@@ -65,35 +65,35 @@ class GOLRule {
         var aliveCount = 0
         
         if existing.contains(point.neighbor(.TopLeft)) {
-            aliveCount++
+            aliveCount += 1
         }
         
         if existing.contains(point.neighbor(.Top)) {
-            aliveCount++
+            aliveCount += 1
         }
         
         if existing.contains(point.neighbor(.TopRight)) {
-            aliveCount++
+            aliveCount += 1
         }
         
         if existing.contains(point.neighbor(.Left)) {
-            aliveCount++
+            aliveCount += 1
         }
         
         if existing.contains(point.neighbor(.Right)) {
-            aliveCount++
+            aliveCount += 1
         }
         
         if existing.contains(point.neighbor(.BottomLeft)) {
-            aliveCount++
+            aliveCount += 1
         }
         
         if existing.contains(point.neighbor(.Bottom)) {
-            aliveCount++
+            aliveCount += 1
         }
         
         if existing.contains(point.neighbor(.BottomRight)) {
-            aliveCount++
+            aliveCount += 1
         }
         
         
